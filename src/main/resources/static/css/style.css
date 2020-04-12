@@ -1,36 +1,52 @@
-label.app-control, input.app-control, button.app-control {
-    font-family: Montserrat, Montserrat, monospace;
-    height: 35px;
-    border: none;
+button.app-control {
+	height: 35px;
+	background-color: whitesmoke;
+	border: 1px solid gainsboro;
+}
+
+input.input-control {
+	height: 35px;
+	width: 163px;
+	border: 1px solid gainsboro;
 }
 
 div.app-header {
-    margin-bottom: 3cm;
+	margin-bottom: 2cm;
 }
 
 button.login-control {
-    width: 148px;
-    margin-top: 15px;
+	width: 168px;
+	margin-top: 15px;
 }
 
-b.app-name {
-    font-family: Montserrat, Montserrat, monospace;
+div.label-control {
+	margin-top: 15px;
+}
+
+div.app-div {
+	margin-left: 755px;
+}
+
+button.app-button {
+	width: 120px;
+	background-color: whitesmoke;
+	border: 1px solid gainsboro;
 }
 
 img.app-logo {
-    float: left;
-    margin-right: 10px;
+	float: left;
+	margin-right: 10px;
 }
 
 div.login {
-    display: block;
-    text-align: center;
+	display: block;
+	text-align: center;
 }
 
 div.login-space {
-    display: inline-block;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: left;
-    margin-top: 200px;
+	display: inline-block;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: left;
+	margin-top: 200px;
 }

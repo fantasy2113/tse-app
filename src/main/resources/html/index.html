@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <head>
+        <meta charset="UTF-8">
+        <meta content="width=device-width, initial-scale=1" name="viewport">
+        <title>TSE-Lizenzen</title>
+        <link href="favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon"/>
+        <link href="css/style.css?version=2" rel="stylesheet" type="text/css"/>
+        <link href="css/jquery-ui.min.css?version=1" rel="stylesheet" type="text/css"/>
+        <link href="css/jquery-ui.structure.min.css?version=1" rel="stylesheet" type="text/css"/>
+        <link href="css/jquery-ui.theme.min.css?version=1" rel="stylesheet" type="text/css"/>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" rel="stylesheet" type="text/css"/>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" rel="stylesheet" type="text/css"/>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js" type="text/javascript"></script>
+        <script src="js/jquery-ui.min.js?version=1" type="text/javascript"></script>
+        <script src="js/base.js?version=4" type="text/javascript"></script>
+        <script type="text/javascript">
+            var REST_LICENCE_FILTER = 'internal/licence/filter';
+            var REST_LICENCE_SAVE = 'internal/licence/save';
+            var REST_LICENCE_UPDATE = 'internal/licence/update';
+            var REST_LICENCE_DELETE = 'internal/licence/delete';
+            var REST_LICENCE_DETAIL_FILTER = 'internal/licence/detail/filter';
+            var REST_LICENCE_DETAIL_SAVE = 'internal/licence/detail/save';
+            var REST_LICENCE_DETAIL_UPDATE = 'internal/licence/detail/update';
+            var REST_LICENCE_DETAIL_DELETE = 'internal/licence/detail/delete';
+            var REST_LICENCE_DETAIL_REQUESTS = 'internal/licence/detail/requests/';
+            var REST_AUTH_CHECK = 'external/auth-check';
+
+            var UPDATE_PROBLEM = 'Problem beim Update!';
+            var SAVE_PROBLEM = 'Problem beim Speichern!';
+            var DELETE_PROBLEM = 'Problem beim Löschen!';
+            var NO_DATA_FOUND = '-';
+            var DELETE_DATA_CONFIRM = 'Wirklich löschen?';
+            var LOAD_MESSAGE = 'Bitte warten...';
+
+            var OFFSET = 50;
+            var Y_PAGE_OFFSET = window.pageYOffset;
+
+            function resetCookieAndReloadPage() {
+                document.cookie = 'ctoken=noctoken;';
+                $(location).attr('href', getPath() + REST_APP);
+            }
+
+            function initJsGrid() {
+                $('#jsGrid').empty();
+                var MyDateField = function (config) {
+                    jsGrid.Field.call(this, config);
+                };
+                MyDateField.prototype = new jsGrid.Field({
+                    sorter: function (date1, date2) {
+                        return new Date(date1) - new Date(date2);
+                    },
+                    itemTemplate: function (value) {
+                        return new Date(value).toLocaleString();
+                    },
+                    insertTemplate: function (value) {
+                        return this._insertPicker = $("<input>").datepicker({defaultDate: new Date()});
+                    },
+                    editTemplate: function (value) {
+                        return this._editPicker = $("<input>").datepicker().datepicker("setDate", new Date(value));
+                    },
+                    insertValue: function () {
+                        var date = this._insertPicker.datepicker("getDate");
+                        if (date === null) {
+                            date = new Date();
+                        }
+                        return date.toISOString();
+                    },
+                    editValue: function () {
+                        return this._editPicker.datepicker("getDate").toISOString();
+                    }
+                });
+                jsGrid.fields.myDateField = MyDateField;
+                $("#jsGrid").jsGrid({
+                    width: "1000",
+                    height: "800",
+                    inserting: true,
+                    editing: true,
+                    sorting: true,
+                    filtering: true,
+                    autoload: true,
+                    paging: true,
+                    noDataContent: NO_DATA_FOUND,
+                    confirmDeleting: true,
+                    deleteConfirm: DELETE_DATA_CONFIRM,
+                    loadIndication: true,
+                    loadIndicationDelay: 500,
+                    loadMessage: LOAD_MESSAGE,
+                    loadShading: true,
+                    controller: {
+                        loadData: function (filter) {
+                            var d = $.Deferred();
+                            $.ajax({
+                                type: "PUT",
+                                url: getPath() + REST_LICENCE_FILTER,
+                                contentType: "application/json; charset=utf-8",
+                                data: JSON.stringify(filter),
+                                dataType: "json",
+                                statusCode: {
+                                    401: function (result) {
+                                        resetCookieAndReloadPage();
+                                    }
+                                }
+                            }).done(function (result) {
+                                d.resolve(result);
+                            });
+                            return d.promise();
+                        },
+                        insertItem: function (item) {
+                            return $.ajax({
+                                type: "POST",
+                                url: getPath() + REST_LICENCE_SAVE,
+                                contentType: "application/json; charset=utf-8",
+                                data: JSON.stringify(item),
+                                dataType: "json",
+                                statusCode: {
+                                    401: function () {
+                                        resetCookieAndReloadPage();
+                                    }
+                                },
+                                error: function () {
+                                    alert(SAVE_PROBLEM);
+                                }
+                            });
+                        },
+                        updateItem: function (item) {
+                            return $.ajax({
+                                type: "PUT",
+                                url: getPath() + REST_LICENCE_UPDATE,
+                                contentType: "application/json; charset=utf-8",
+                                data: JSON.stringify(item),
+                                dataType: "json",
+                                statusCode: {
+                                    401: function () {
+                                        resetCookieAndReloadPage();
+                                    }
+                                },
+                                error: function () {
+                                    alert(UPDATE_PROBLEM);
+                                }
+                            });
+                        },
+                        deleteItem: function (item) {
+                            $.ajax({
+                                type: "DELETE",
+                                url: getPath() + REST_LICENCE_DELETE,
+                                contentType: "application/json; charset=utf-8",
+                                data: JSON.stringify(item),
+                                dataType: "json",
+                                statusCode: {
+                                    401: function (result) {
+                                        resetCookieAndReloadPage();
+                                    }
+                                },
+                                error: function () {
+                                    alert(DELETE_PROBLEM);
+                                }
+                            });
+                        }
+                    },
+                    fields: [
+                        {name: "id", title: "ID", type: "number", width: "auto", visible: false},
+                        {name: "licenceNumber", title: "Lizenz", type: "text", width: "auto"},
+                        {name: "tseType", title: "TSE", type: "text", width: "auto"},
+                        {name: "numberOfTse", title: "Anzahl", type: "number", width: "auto", search: false, filtering: false},
+                        {name: "tseAvailable", title: "Verfügbar", type: "number", width: "auto", editing: false, search: false, filtering: false, inserting: false},
+                        {
+                            name: "active", title: "Aktiv", type: "checkbox", width: "auto", search: false, filtering: false,
+                            insertTemplate: function () {
+                                var $result = jsGrid.fields.checkbox.prototype.insertTemplate.call(this);
+                                $result.prop("checked", true);
+                                return $result;
+                            }
+                        },
+                        {type: "control"}
+                    ],
+                    rowClick: function (args_detail) {
+                        var licenceId = getId(args_detail);
+                        var licenceFilter = getRefreshLicenceFilter(args_detail);
+                        $('#dialogDetail').dialog({
+                            title: getDetailTitle(args_detail),
+                            bgiframe: true,
+                            modal: true,
+                            width: 'auto',
+                            height: 'auto',
+                            closeOnEscape: true,
+                            open: function (event, ui) {
+                                $(this).parent().css({'top': Y_PAGE_OFFSET + OFFSET, 'left': OFFSET});
+                                $("#dialogJsGridDetail").jsGrid({
+                                    width: "1000",
+                                    height: "580",
+                                    inserting: true,
+                                    editing: true,
+                                    sorting: true,
+                                    filtering: true,
+                                    autoload: true,
+                                    paging: true,
+                                    noDataContent: NO_DATA_FOUND,
+                                    confirmDeleting: true,
+                                    deleteConfirm: DELETE_DATA_CONFIRM,
+                                    loadIndication: true,
+                                    loadIndicationDelay: 500,
+                                    loadMessage: LOAD_MESSAGE,
+                                    loadShading: true,
+                                    controller: {
+                                        loadData: function (filter) {
+                                            filter = getJsonObjWithLicenceId(filter, licenceId);
+                                            var d = $.Deferred();
+                                            $.ajax({
+                                                type: "PUT",
+                                                url: getPath() + REST_LICENCE_DETAIL_FILTER,
+                                                contentType: "application/json; charset=utf-8",
+                                                data: JSON.stringify(filter),
+                                                dataType: "json",
+                                                statusCode: {
+                                                    401: function (result) {
+                                                        resetCookieAndReloadPage();
+                                                    }
+                                                }
+                                            }).done(function (result) {
+                                                d.resolve(result);
+                                            });
+                                            return d.promise();
+                                        },
+                                        insertItem: function (item) {
+                                            item = getJsonObjWithLicenceId(item, licenceId);
+                                            return $.ajax({
+                                                type: "POST",
+                                                url: getPath() + REST_LICENCE_DETAIL_SAVE,
+                                                contentType: "application/json; charset=utf-8",
+                                                data: JSON.stringify(item),
+                                                dataType: "json",
+                                                statusCode: {
+                                                    401: function () {
+                                                        resetCookieAndReloadPage();
+                                                    }
+                                                },
+                                                error: function () {
+                                                    alert(SAVE_PROBLEM);
+                                                }
+                                            });
+                                        },
+                                        updateItem: function (item) {
+                                            item = getJsonObjWithLicenceId(item, licenceId);
+                                            return $.ajax({
+                                                type: "PUT",
+                                                url: getPath() + REST_LICENCE_DETAIL_UPDATE,
+                                                contentType: "application/json; charset=utf-8",
+                                                data: JSON.stringify(item),
+                                                dataType: "json",
+                                                statusCode: {
+                                                    401: function () {
+                                                        resetCookieAndReloadPage();
+                                                    }
+                                                },
+                                                error: function () {
+                                                    alert(UPDATE_PROBLEM);
+                                                }
+                                            });
+                                        },
+                                        deleteItem: function (item) {
+                                            item = getJsonObjWithLicenceId(item, licenceId);
+                                            $.ajax({
+                                                type: "DELETE",
+                                                url: getPath() + REST_LICENCE_DETAIL_DELETE,
+                                                contentType: "application/json; charset=utf-8",
+                                                data: JSON.stringify(item),
+                                                dataType: "json",
+                                                statusCode: {
+                                                    401: function (result) {
+                                                        resetCookieAndReloadPage();
+                                                    }
+                                                },
+                                                error: function () {
+                                                    alert(DELETE_PROBLEM);
+                                                }
+                                            });
+                                        }
+                                    },
+                                    fields: [
+                                        {name: "id", title: "ID", type: "number", width: "auto", visible: false},
+                                        {name: "licenceId", title: "LicenceID", type: "number", width: "auto", visible: false},
+                                        {name: "branchNumber", title: "Filiale", type: "number", width: "auto"},
+                                        {name: "tillExternalId", title: "Kasse", type: "number", width: "auto"},
+                                        {name: "dateRegistered", title: "Registriert", type: "myDateField", width: "auto"},
+                                        {
+                                            name: "active", title: "Aktiv", type: "checkbox", width: "auto", search: false, filtering: false,
+                                            insertTemplate: function () {
+                                                var $result = jsGrid.fields.checkbox.prototype.insertTemplate.call(this);
+                                                $result.prop("checked", true);
+                                                return $result;
+                                            }
+                                        },
+                                        {type: "control"}
+                                    ],
+                                    rowClick: function (args_logs) {
+                                        var licenceDetailId = getId(args_logs);
+                                        $.ajax({
+                                            type: "GET",
+                                            url: getPath() + REST_LICENCE_DETAIL_REQUESTS + licenceDetailId,
+                                            contentType: "application/json; charset=utf-8",
+                                            dataType: "json",
+                                            statusCode: {
+                                                401: function () {
+                                                    resetCookieAndReloadPage();
+                                                }
+                                            },
+                                            success: function (result) {
+                                                $("#dialogLog").dialog({
+                                                    title: getLogTitle(args_logs),
+                                                    bgiframe: true,
+                                                    modal: true,
+                                                    width: 350,
+                                                    height: 'auto',
+                                                    closeOnEscape: true,
+                                                    open: function (event, ui) {
+                                                        $(this).parent().css({'top': Y_PAGE_OFFSET + OFFSET * 2, 'left': OFFSET * 2});
+                                                        $("#dialogJsGridLog").jsGrid({
+                                                            height: "100%",
+                                                            width: "100%",
+                                                            sorting: true,
+                                                            noDataContent: NO_DATA_FOUND,
+                                                            data: result,
+                                                            fields: [
+                                                                {name: "requestType", type: "text", title: "Typ", width: "auto"},
+                                                                {name: "requestDate", title: "Datum", type: "myDateField", width: "auto"}
+                                                            ]
+                                                        });
+                                                    },
+                                                    close: function (event, ui) {
+                                                        $("#dialogJsGridDetail").jsGrid("loadData");
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            },
+                            close: function (event, ui) {
+                                $("#jsGrid").jsGrid("loadData", licenceFilter);
+                            }
+                        });
+                    }
+                });
+            }
+
+            function getJsonObjWithLicenceId(item, licenceId) {
+                item.licenceId = licenceId;
+                return item;
+            }
+
+            function getId(args) {
+                return args.item.id;
+            }
+
+            function getLogTitle(args) {
+                return 'Log: Filiale(' + args.item.branchNumber + ') - Kasse(' + args.item.tillExternalId + ')';
+            }
+
+            function getDetailTitle(args) {
+                return 'TSE-Lizenznummer: ' + args.item.licenceNumber;
+            }
+
+            function getRefreshLicenceFilter(args) {
+                var filter = {
+                    "licenceNumber": args.item.licenceNumber,
+                    "tseType": args.item.tseType
+                };
+                return filter;
+            }
+
+            function authCheck() {
+                $.ajax({
+                    type: "POST",
+                    url: getPath() + REST_AUTH_CHECK,
+                    statusCode: {
+                        401: function () {
+                            resetCookieAndReloadPage();
+                        }
+                    }
+                });
+            }
+
+            $(document).ready(function () {
+                authCheck();
+                $('#logout_button').bind('click', function () {
+                    resetCookieAndReloadPage();
+                });
+                $('#refresh_button').bind('click', function () {
+                    $("#jsGrid").jsGrid("loadData");
+                });
+                initJsGrid();
+                setInterval(function () {
+                    $("#jsGrid").jsGrid("loadData");
+                }, 300000);
+            });
+        </script>
+    </head>
+</head>
+<body>
+<div class="app-header">
+    <img class="app-logo" height="69" src="img/logo_roqqio.png" width="275">
+    <b>TSE-Lizenzen</b>
+</div>
+<div class="app-div">
+    <button class="app-control app-button" id="refresh_button">Aktualisieren</button>
+    <button class="app-control app-button" id="logout_button">Abmelden</button>
+</div>
+<div id="dialogDetail" title="Details">
+    <div id="dialogJsGridDetail">
+    </div>
+</div>
+<div id="dialogLog" title="Zugriffe">
+    <div id="dialogJsGridLog">
+    </div>
+</div>
+<br>
+<div id="jsGrid">
+</div>
+</body>
+</html>

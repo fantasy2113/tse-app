@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>TSE-Lizenzen</title>
+    <link href="favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon"/>
+    <link href="css/style.css?version=2" rel="stylesheet" type="text/css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js" type="text/javascript"></script>
+    <script src="js/base.js?version=4" type="text/javascript"></script>
+    <script type="text/javascript">
+        var REST_AUTH = 'external/auth';
+        var WRONG_AUTH_DATA = '&#10149; Bitte Passwort UND Benutzername eingeben';
+        var AUTH_FAIL = '&#10149; Passwort oder Benutzername falsch';
+
+        function setToken(username, password) {
+            $.ajax({
+                beforeSend: function (request) {
+                    request.setRequestHeader('username', username);
+                    request.setRequestHeader('password', password);
+                },
+                url: getPath() + REST_AUTH,
+                method: 'GET',
+                dataType: "json",
+                success: function (result) {
+                    document.cookie = 'ctoken=' + result.token + ';';
+                    $(location).attr('href', getPath() + REST_APP);
+                },
+                error: function () {
+                    $("#alert").append(AUTH_FAIL);
+                }
+            });
+        }
+
+        function isLogin(username, password) {
+            return username === '' || password === ''
+                || username === undefined || password === undefined;
+        }
+
+        function login(username, password) {
+            clear();
+            if (isLogin(username, password)) {
+                $("#alert").append(WRONG_AUTH_DATA);
+            } else {
+                setToken(username, password);
+            }
+        }
+
+        function clear() {
+            $("#alert").empty();
+            $("#alert").append('&nbsp;');
+        }
+
+        function clickLogin(event) {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13') {
+                $('#login_button').click();
+            }
+        }
+
+        $(document).ready(function () {
+            $('#login_button').bind('click', function () {
+                login($('input[id=username]').val(), $('input[id=password]').val());
+            });
+            $('#username').bind('change', function () {
+                clear();
+            }).keypress(function (event) {
+                clickLogin(event);
+            });
+            $('#password').bind('change', function () {
+                clear();
+            }).keypress(function (event) {
+                clickLogin(event);
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="app-header">
+    <img class="app-logo" height="69" src="img/logo_roqqio.png" width="275">
+    <b>TSE-Lizenzen</b>
+</div>
+<div class="login">
+    <div class="login-space">
+        <div>
+            <label for="username">Benutzername:</label>
+        </div>
+        <div>
+            <input class="input-control" id="username" type="text">
+        </div>
+        <div class="label-control">
+            <label for="password">Passwort:</label>
+        </div>
+        <div>
+            <input class="input-control" id="password" type="password">
+        </div>
+        <div>
+            <button class="app-control login-control" id="login_button">Anmelden</button>
+        </div>
+    </div>
+    <div>
+        <b id="alert">&nbsp;</b>
+    </div>
+</div>
+</body>
+</html>
+
