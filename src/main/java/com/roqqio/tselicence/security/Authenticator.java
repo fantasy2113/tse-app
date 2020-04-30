@@ -56,7 +56,7 @@ public final class Authenticator implements IAuthenticator, TaskRunner {
 
     @Override
     public boolean isOk(HttpServletRequest req) {
-        return isOk(parseToken(req.getCookies()));
+        return isOk(parseToken(req));
     }
 
     @Override
@@ -65,8 +65,10 @@ public final class Authenticator implements IAuthenticator, TaskRunner {
     }
 
     @Override
-    public Optional<String> getToken(final String username, final String plainPassword) {
+    public Optional<String> getToken(String username, String plainPassword) {
         if (isCheck(username, plainPassword)) {
+            username = username.trim();
+            plainPassword = plainPassword.trim();
             Optional<User> optionalUser = userRepository.get(username);
             if (optionalUser.isPresent() && optionalUser.get().isActive()) {
                 User user = optionalUser.get();
@@ -92,7 +94,12 @@ public final class Authenticator implements IAuthenticator, TaskRunner {
         return false;
     }
 
-    private String parseToken(Cookie[] cookies) {
+    private String parseToken(HttpServletRequest req) {
+        String hToken = req.getHeader("htoken");
+        if (hToken != null) {
+            return hToken;
+        }
+        Cookie[] cookies = req.getCookies();
         if (cookies == null) {
             return "";
         }

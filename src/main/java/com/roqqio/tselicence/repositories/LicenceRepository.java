@@ -116,9 +116,8 @@ public class LicenceRepository extends Repository<Licence> implements ILicenceRe
     }
 
     @Override
-    public Optional<Licence> findWithEncoding(Licence params) {
+    public Optional<Licence> findWithDecryption(Licence params) {
         Optional<String> decrypt = aes.decrypt(params.getLicenceNumber());
-
         if (decrypt.isPresent()) {
             params.setLicenceNumber(decrypt.get());
             Optional<Licence> licence = find(params);
@@ -130,19 +129,16 @@ public class LicenceRepository extends Repository<Licence> implements ILicenceRe
                 }
             }
         }
-
         return Optional.empty();
     }
 
     @Override
-    public Optional<Licence> saveWithEncoding(Licence item) {
+    public Optional<Licence> saveWithDecryption(Licence item) {
         Optional<String> decrypt = aes.decrypt(item.getLicenceNumber());
-
         if (decrypt.isPresent()) {
             item.setLicenceNumber(decrypt.get());
             return save(item);
         }
-
         return Optional.empty();
     }
 
@@ -154,9 +150,9 @@ public class LicenceRepository extends Repository<Licence> implements ILicenceRe
     @Override
     public List<Licence> save(List<Licence> licences) {
         LocalDateTime now = LocalDateTime.now();
-        licences.forEach(licence -> {
-            licence.setCreated(now);
-            licence.setModified(now);
+        licences.forEach(l -> {
+            l.setCreated(now);
+            l.setModified(now);
         });
         return IterableUtils.toList(hiLicenceRepository.saveAll(licences));
     }
@@ -168,7 +164,7 @@ public class LicenceRepository extends Repository<Licence> implements ILicenceRe
             return new ArrayList<>();
         }
         List<Licence> licences = super.filterItems(item, 250);
-        licences.forEach(lic -> lic.setTseAvailable(getAvailableTse(lic)));
+        licences.forEach(l -> l.setTseAvailable(getAvailableTse(l)));
         return licences;
     }
 
@@ -187,9 +183,8 @@ public class LicenceRepository extends Repository<Licence> implements ILicenceRe
     private Optional<Licence> updateOrSave(Licence item) throws SQLException {
         crossInjectGuard(item);
         parameterGuard(item);
-
         Optional<Licence> licence = Optional.of(hiLicenceRepository.save(item));
-        licence.ifPresent(lic -> lic.setTseAvailable(getAvailableTse(lic)));
+        licence.ifPresent(l -> l.setTseAvailable(getAvailableTse(l)));
         return licence;
     }
 
@@ -211,8 +206,14 @@ public class LicenceRepository extends Repository<Licence> implements ILicenceRe
         }
     }
 
+    private void alreadyExistGuard(Licence item) throws SQLException {
+        if (hiLicenceRepository
+                .findByLicenceNumberAndTseType(item.getLicenceNumber(), item.getTseType()).isPresent()) {
+            throw new SQLException("Entity: " + item.toString() + " already exists");
+        }
+    }
+
     private long getAvailableTse(Licence licence) {
         return licence.getNumberOfTse() - hiLicenceDetailRepository.countByLicenceId(licence.getId());
     }
-
 }

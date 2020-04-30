@@ -32,8 +32,7 @@ public class AuthInterceptor extends Interceptor implements HandlerInterceptor {
             HandlerMethod method = (HandlerMethod) handler;
             if (method.getMethodAnnotation(WithAuthentication.class) != null) {
                 if (authenticator.isFail(request)) {
-                    setUnauthorized(response);
-                    LOGGER.info("unauthorized");
+                    LOGGER.info(unauthorized(response, request));
                     return false;
                 }
             }

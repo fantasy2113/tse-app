@@ -22,8 +22,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import testutil.DbUtilsTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -39,6 +38,10 @@ class ExtLicenceControllerTest {
     @Autowired
     UrlSaveAes aes;
     @Autowired
+    DbSetup dbSetup;
+    @Autowired
+    Environment env;
+    @Autowired
     private ILicenceRepository licenceRepository;
     @Autowired
     private ILicenceDetailRepository licenceDetailRepository;
@@ -46,10 +49,6 @@ class ExtLicenceControllerTest {
     private Authenticator authenticator;
     @Autowired
     private MockMvc mvc;
-    @Autowired
-    DbSetup dbSetup;
-    @Autowired
-    Environment env;
 
     @BeforeEach
     void setUp() {
@@ -61,7 +60,38 @@ class ExtLicenceControllerTest {
     }
 
     @Test
-    void find() throws Exception {
+    void freeWithoutLicence() throws Exception {
+        Licence licence = new Licence();
+        licence.setNumberOfTse(100);
+        licence.setTseType("fiskaly");
+        licence.setLicenceNumber("123456789");
+
+        MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/external/licence/free")
+                .param("licenceNumber", aes.encrypt(licence.getLicenceNumber()).get())
+                .param("tseType", licence.getTseType()))
+                .andExpect(status().is(404)).andReturn();
+
+        assertEquals(-1, Integer.valueOf(mvcResult.getResponse().getContentAsString()));
+    }
+
+    @Test
+    void freeWithLicence() throws Exception {
+        Licence licence = new Licence();
+        licence.setNumberOfTse(100);
+        licence.setTseType("fiskaly");
+        licence.setLicenceNumber("123456789");
+        licenceRepository.save(licence);
+
+        MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/external/licence/free")
+                .param("licenceNumber", aes.encrypt(licence.getLicenceNumber()).get())
+                .param("tseType", licence.getTseType()))
+                .andExpect(status().isOk()).andReturn();
+
+        assertEquals(100, Integer.valueOf(mvcResult.getResponse().getContentAsString()));
+    }
+
+    @Test
+    void findWithDetailLicence() throws Exception {
         Licence licence = new Licence();
         licence.setNumberOfTse(1);
         licence.setTseType("typ1");
@@ -70,8 +100,8 @@ class ExtLicenceControllerTest {
         licence.setId(1);
 
         LicenceDetail licenceDetail = new LicenceDetail();
-        licenceDetail.setBranchNumber(1);
-        licenceDetail.setTillExternalId(1);
+        licenceDetail.setBranchNumber("1");
+        licenceDetail.setTillExternalId("1");
         licenceDetail.setLicenceId(1);
         licenceDetailRepository.save(licenceDetail);
         licenceDetail.setId(1);
@@ -79,9 +109,9 @@ class ExtLicenceControllerTest {
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/external/licence/find")
                 .param("licenceNumber", aes.encrypt(licence.getLicenceNumber()).get())
                 .param("tseType", licence.getTseType())
-                .param("branchNumber", String.valueOf(licenceDetail.getBranchNumber()))
-                .param("tillExternalId", String.valueOf(licenceDetail.getTillExternalId()))
-                .param("token", token)).andExpect(status().isOk()).andReturn();
+                .param("branchNumber", licenceDetail.getBranchNumber())
+                .param("tillExternalId", licenceDetail.getTillExternalId()))
+                .andExpect(status().isOk()).andReturn();
 
         LicenceResponse result = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), LicenceResponse.class);
 
@@ -97,6 +127,37 @@ class ExtLicenceControllerTest {
     }
 
     @Test
+    void findWithoutDetailLicence() throws Exception {
+        Licence licence = new Licence();
+        licence.setNumberOfTse(1);
+        licence.setTseType("typ1");
+        licence.setLicenceNumber("1-1");
+        licenceRepository.save(licence);
+
+        mvc.perform(MockMvcRequestBuilders.get("/external/licence/find")
+                .param("licenceNumber", aes.encrypt(licence.getLicenceNumber()).get())
+                .param("tseType", licence.getTseType())
+                .param("branchNumber", "1")
+                .param("tillExternalId", "1"))
+                .andExpect(status().is(204));
+    }
+
+    @Test
+    void findWithoutLicenceAndDetailLicence() throws Exception {
+        Licence licence = new Licence();
+        licence.setNumberOfTse(1);
+        licence.setTseType("typ1");
+        licence.setLicenceNumber("1-1");
+
+        mvc.perform(MockMvcRequestBuilders.get("/external/licence/find")
+                .param("licenceNumber", aes.encrypt(licence.getLicenceNumber()).get())
+                .param("tseType", licence.getTseType())
+                .param("branchNumber", "1")
+                .param("tillExternalId", "1"))
+                .andExpect(status().is(404));
+    }
+
+    @Test
     void findWithoutEncoding() throws Exception {
         Licence licence = new Licence();
         licence.setNumberOfTse(1);
@@ -106,8 +167,8 @@ class ExtLicenceControllerTest {
         licence.setId(1);
 
         LicenceDetail licenceDetail = new LicenceDetail();
-        licenceDetail.setBranchNumber(1);
-        licenceDetail.setTillExternalId(1);
+        licenceDetail.setBranchNumber("1");
+        licenceDetail.setTillExternalId("1");
         licenceDetail.setLicenceId(1);
         licenceDetailRepository.save(licenceDetail);
         licenceDetail.setId(1);
@@ -115,14 +176,15 @@ class ExtLicenceControllerTest {
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/external/licence/find")
                 .param("licenceNumber", licence.getLicenceNumber())
                 .param("tseType", licence.getTseType())
-                .param("branchNumber", String.valueOf(licenceDetail.getBranchNumber()))
-                .param("tillExternalId", String.valueOf(licenceDetail.getTillExternalId()))
-                .param("token", token)).andExpect(status().is(404)).andReturn();
+                .param("branchNumber", licenceDetail.getBranchNumber())
+                .param("tillExternalId", licenceDetail.getTillExternalId()))
+                .andExpect(status().is(404))
+                .andReturn();
 
         LicenceResponse result = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), LicenceResponse.class);
 
         assertNotEquals(licence.getLicenceNumber(), result.getLicenceNumber());
-        assertEquals(null, result.getLicenceNumber());
+        assertNull(result.getLicenceNumber());
     }
 
 
@@ -136,17 +198,18 @@ class ExtLicenceControllerTest {
         licence.setId(1);
 
         LicenceDetail licenceDetail = new LicenceDetail();
-        licenceDetail.setBranchNumber(1);
-        licenceDetail.setTillExternalId(1);
+        licenceDetail.setBranchNumber("1");
+        licenceDetail.setTillExternalId("1");
         licenceDetail.setLicenceId(1);
         licenceDetail.setId(1);
 
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.post("/external/licence/save/licence_detail")
                 .param("licenceNumber", aes.encrypt(licence.getLicenceNumber()).get())
                 .param("tseType", licence.getTseType())
-                .param("branchNumber", String.valueOf(licenceDetail.getBranchNumber()))
-                .param("tillExternalId", String.valueOf(licenceDetail.getTillExternalId()))
-                .param("token", token)).andExpect(status().isOk()).andReturn();
+                .param("branchNumber", licenceDetail.getBranchNumber())
+                .param("tillExternalId", licenceDetail.getTillExternalId()))
+                .andExpect(status().isOk())
+                .andReturn();
 
         LicenceResponse result = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), LicenceResponse.class);
 
@@ -171,17 +234,18 @@ class ExtLicenceControllerTest {
         licence.setId(1);
 
         LicenceDetail licenceDetail = new LicenceDetail();
-        licenceDetail.setBranchNumber(1);
-        licenceDetail.setTillExternalId(1);
+        licenceDetail.setBranchNumber("1");
+        licenceDetail.setTillExternalId("1");
         licenceDetail.setLicenceId(1);
         licenceDetail.setId(1);
 
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.post("/external/licence/save/licence_detail")
                 .param("licenceNumber", licence.getLicenceNumber())
                 .param("tseType", licence.getTseType())
-                .param("branchNumber", String.valueOf(licenceDetail.getBranchNumber()))
-                .param("tillExternalId", String.valueOf(licenceDetail.getTillExternalId()))
-                .param("token", token)).andExpect(status().is(404)).andReturn();
+                .param("branchNumber", licenceDetail.getBranchNumber())
+                .param("tillExternalId", licenceDetail.getTillExternalId()))
+                .andExpect(status().is(404))
+                .andReturn();
 
         LicenceResponse result = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), LicenceResponse.class);
 
@@ -200,8 +264,8 @@ class ExtLicenceControllerTest {
         licence.setId(1);
 
         LicenceDetail licenceDetail = new LicenceDetail();
-        licenceDetail.setBranchNumber(1);
-        licenceDetail.setTillExternalId(1);
+        licenceDetail.setBranchNumber("1");
+        licenceDetail.setTillExternalId("1");
         licenceDetail.setLicenceId(1);
         licenceDetailRepository.save(licenceDetail);
         licenceDetail.setId(1);
@@ -209,9 +273,10 @@ class ExtLicenceControllerTest {
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/external/licence/find")
                 .param("licenceNumber", aes.encrypt(licence.getLicenceNumber()).get())
                 .param("tseType", licence.getTseType())
-                .param("branchNumber", String.valueOf(licenceDetail.getBranchNumber()))
-                .param("tillExternalId", String.valueOf(licenceDetail.getTillExternalId()))
-                .param("token", token)).andExpect(status().is(404)).andReturn();
+                .param("branchNumber", licenceDetail.getBranchNumber())
+                .param("tillExternalId", licenceDetail.getTillExternalId()))
+                .andExpect(status().is(404))
+                .andReturn();
 
         LicenceResponse result = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), LicenceResponse.class);
 
@@ -229,17 +294,18 @@ class ExtLicenceControllerTest {
         licence.setId(1);
 
         LicenceDetail licenceDetail = new LicenceDetail();
-        licenceDetail.setBranchNumber(1);
-        licenceDetail.setTillExternalId(1);
+        licenceDetail.setBranchNumber("1");
+        licenceDetail.setTillExternalId("1");
         licenceDetail.setLicenceId(1);
         licenceDetail.setId(1);
 
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.post("/external/licence/save/licence_detail")
                 .param("licenceNumber", aes.encrypt(licence.getLicenceNumber()).get())
                 .param("tseType", licence.getTseType())
-                .param("branchNumber", String.valueOf(licenceDetail.getBranchNumber()))
-                .param("tillExternalId", String.valueOf(licenceDetail.getTillExternalId()))
-                .param("token", token)).andExpect(status().is(404)).andReturn();
+                .param("branchNumber", licenceDetail.getBranchNumber())
+                .param("tillExternalId", licenceDetail.getTillExternalId()))
+                .andExpect(status().is(404))
+                .andReturn();
 
         LicenceResponse result = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), LicenceResponse.class);
 

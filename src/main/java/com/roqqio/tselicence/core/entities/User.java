@@ -80,12 +80,12 @@ public final class User implements Serializable {
         return active;
     }
 
-    public void setIsActive(boolean isActive) {
-        this.active = isActive;
-    }
-
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.active = isActive;
     }
 
     public String getUserRole() {

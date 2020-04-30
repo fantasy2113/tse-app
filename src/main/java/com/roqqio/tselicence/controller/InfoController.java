@@ -1,5 +1,9 @@
 package com.roqqio.tselicence.controller;
 
+import com.roqqio.tselicence.core.Comp;
+import com.roqqio.tselicence.core.interfaces.repositories.ILogRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,41 +11,43 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @RestController
 public class InfoController {
-    @GetMapping(value = "/client", produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> client(HttpServletRequest req) throws Exception {
-        String xForwardedFor = req.getHeader("X-Forwarded-For");
-        xForwardedFor = xForwardedFor != null && xForwardedFor.contains(",") ? xForwardedFor.split(",")[0] : xForwardedFor;
-        String remoteHost = req.getRemoteHost();
-        String remoteAddr = req.getRemoteAddr();
-        int remotePort = req.getRemotePort();
-        String msg = remoteHost + " (" + remoteAddr + ":" + remotePort + ") X-Forwarded-For=" + xForwardedFor;
-        return ResponseEntity.status(200).body(msg);
-    }
+    private final ILogRepository logRepository;
 
-    @GetMapping(value = "/header", produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> header(HttpServletRequest req) throws Exception {
-        Map<String, String> result = new HashMap<>();
-
-        StringBuilder sb = new StringBuilder();
-        Enumeration headerNames = req.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String key = (String) headerNames.nextElement();
-            String value = req.getHeader(key);
-            result.put(key, value);
-            sb.append(key + ":" + value + "\n");
-        }
-
-        return ResponseEntity.status(200).body(sb.toString());
+    @Autowired
+    public InfoController(@Qualifier(Comp.LOG_REP) ILogRepository logRepository) {
+        this.logRepository = logRepository;
     }
 
     @GetMapping(value = "/time", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String time() {
-        return LocalDateTime.now().toString();
+    public ResponseEntity<String> time() {
+        return ResponseEntity.ok().body(LocalDateTime.now().toString());
+    }
+
+    @GetMapping(value = "/logs", produces = MediaType.TEXT_HTML_VALUE)
+    public final ResponseEntity<String> logs() {
+        return ResponseEntity.ok().body(logs(logRepository.getLogs()));
+    }
+
+    @GetMapping(value = "/ip", produces = MediaType.TEXT_HTML_VALUE)
+    public final ResponseEntity<String> ip(HttpServletRequest request) {
+        String clientInfo = request.getRemoteHost() + " Host (" + request.getRemoteAddr() + " Addr : " + request.getRemotePort() + " Port)";
+        return ResponseEntity.ok().body(clientInfo);
+    }
+
+    private String logs(final List<String> logs) {
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html><html><title>Logs</title><body>");
+        html.append("<table style=\"text-align:left;\">");
+        html.append("<tr>");
+        html.append("<th style=\"border:1px solid black\">Logs:</th>");
+        html.append("</tr>");
+        logs.stream().map(log -> "<tr><td style=\"border:1px solid black;text-align:left;\">" + log + "</td></tr>")
+                .forEach(html::append);
+        html.append("</table></body></html>");
+        return html.toString();
     }
 }

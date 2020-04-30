@@ -3,6 +3,7 @@ package com.roqqio.tselicence.core.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.roqqio.tselicence.core.interfaces.entities.IEntityData;
 import com.roqqio.tselicence.core.interfaces.entities.IModified;
+import com.roqqio.tselicence.core.util.Toolbox;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -34,12 +35,22 @@ public class Licence implements IEntityData, IModified, Serializable {
     private LocalDateTime modified;
     @Transient
     private long tseAvailable;
+    @Transient
+    private String info;
 
     public Licence() {
         this.id = -1;
         this.created = LocalDateTime.now();
         this.modified = LocalDateTime.now();
         this.active = true;
+    }
+
+    public Licence(String info) {
+        this.id = -1;
+        this.created = LocalDateTime.now();
+        this.modified = LocalDateTime.now();
+        this.active = true;
+        this.info = info;
     }
 
     public long getId() {
@@ -55,7 +66,7 @@ public class Licence implements IEntityData, IModified, Serializable {
     }
 
     public void setLicenceNumber(String licenceNumber) {
-        this.licenceNumber = licenceNumber;
+        this.licenceNumber = Toolbox.trim(licenceNumber);
     }
 
     public String getTseType() {
@@ -63,7 +74,7 @@ public class Licence implements IEntityData, IModified, Serializable {
     }
 
     public void setTseType(String tseType) {
-        this.tseType = tseType;
+        this.tseType = Toolbox.trim(tseType);
     }
 
     public int getNumberOfTse() {
@@ -106,6 +117,24 @@ public class Licence implements IEntityData, IModified, Serializable {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    /**
+     * Returns the info.
+     *
+     * @return the info
+     */
+    public String getInfo() {
+        return info;
+    }
+
+    /**
+     * Sets the info field with given info.
+     *
+     * @param info the info to set
+     */
+    public void setInfo(String info) {
+        this.info = info;
     }
 
     @Override

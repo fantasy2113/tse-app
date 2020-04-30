@@ -12,8 +12,8 @@ import java.util.Optional;
 @Component(Comp.HI_LIC_DE_REP)
 interface HiLicenceDetailRepository extends CrudRepository<LicenceDetail, Long> {
     Optional<LicenceDetail> findByLicenceIdAndBranchNumberAndTillExternalId(@Param("licence_id") long licenceId,
-                                                                            @Param("branch_number") int branchNumber,
-                                                                            @Param("till_external_id") int tillExternalId);
+                                                                            @Param("branch_number") String branchNumber,
+                                                                            @Param("till_external_id") String tillExternalId);
 
     List<LicenceDetail> findAllByLicenceId(@Param("licence_id") long licenceId);
 

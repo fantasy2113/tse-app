@@ -143,8 +143,8 @@ class LicenceRepositoryTest {
         assertEquals(0, licenceRepository.get(id).get().getNumberOfTse());
 
         LicenceDetail licenceDetail = new LicenceDetail();
-        licenceDetail.setBranchNumber(1);
-        licenceDetail.setTillExternalId(1);
+        licenceDetail.setBranchNumber("1");
+        licenceDetail.setTillExternalId("1");
         licenceDetail.setLicenceId(id);
 
         licenceDetailRepository.save(licenceDetail);
@@ -153,11 +153,12 @@ class LicenceRepositoryTest {
 
 
         defaultLicence.setNumberOfTse(3);
+        defaultLicence.setLicenceNumber("1-2");
 
         assertEquals(2, licenceRepository.update(defaultLicence).get().getTseAvailable());
 
-        licenceDetail.setBranchNumber(45);
-        licenceDetail.setTillExternalId(3);
+        licenceDetail.setBranchNumber("45");
+        licenceDetail.setTillExternalId("3");
 
         licenceDetailRepository.save(licenceDetail);
 
@@ -165,6 +166,7 @@ class LicenceRepositoryTest {
 
         defaultLicence.setNumberOfTse(2);
 
+        defaultLicence.setLicenceNumber("1-3");
         assertEquals(0, licenceRepository.update(defaultLicence).get().getTseAvailable());
     }
 }

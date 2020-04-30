@@ -17,16 +17,17 @@ public class DbSetup {
     private final String database;
     private final IUserRepository userRepository;
     private final Environment env;
+    private final String activeProfile;
 
     @Autowired
     public DbSetup(Environment env, @Qualifier(Comp.USER_REP) IUserRepository userRepository) {
         this.userRepository = userRepository;
         this.env = env;
         this.database = this.env.getProperty("spring.datasource.url");
+        this.activeProfile = env.getActiveProfiles()[0];
     }
 
     public void dbSetup() {
-        dropTable("licences", "request_logs", "users", "licences_detail");
         createTable("request_logs_table.sql", "licences_table.sql", "users_table.sql", "licences_detail_table.sql");
         insertDefaultUser();
     }
@@ -36,19 +37,23 @@ public class DbSetup {
     }
 
     public void truncateTable(String tableName) {
-        try (Connection conn = getConnection(); Statement st = conn.createStatement()) {
-            st.executeUpdate("TRUNCATE TABLE " + tableName.trim() + " RESTART IDENTITY CASCADE;");
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        if (activeProfile.equals("dev")) {
+            try (Connection conn = getConnection(); Statement st = conn.createStatement()) {
+                st.executeUpdate("TRUNCATE TABLE " + tableName.trim() + " RESTART IDENTITY CASCADE;");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
     public void dropTable(String... tableNames) {
-        for (String table : tableNames) {
-            try (Connection conn = getConnection(); Statement st = conn.createStatement()) {
-                st.executeUpdate("DROP TABLE " + table.trim() + ";");
-            } catch (Exception ex) {
-                ex.printStackTrace();
+        if (activeProfile.equals("dev")) {
+            for (String table : tableNames) {
+                try (Connection conn = getConnection(); Statement st = conn.createStatement()) {
+                    st.executeUpdate("DROP TABLE " + table.trim() + ";");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }

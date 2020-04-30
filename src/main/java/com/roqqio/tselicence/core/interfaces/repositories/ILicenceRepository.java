@@ -6,9 +6,7 @@ import java.util.Optional;
 
 public interface ILicenceRepository extends IRepository<Licence>, IFind<Licence>, IFilter<Licence>, IExists {
 
-    Optional<Licence> findWithEncoding(Licence params);
+    Optional<Licence> findWithDecryption(Licence params);
 
-    Optional<Licence> saveWithEncoding(Licence item);
-
-
+    Optional<Licence> saveWithDecryption(Licence item);
 }

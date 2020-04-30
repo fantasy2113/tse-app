@@ -4,14 +4,16 @@
     <head>
         <meta charset="UTF-8">
         <meta content="width=device-width, initial-scale=1" name="viewport">
-        <title>TSE-Lizenzen</title>
+        <title>TSE-Lizenzen 1.1</title>
         <link href="favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon"/>
         <link href="css/style.css?version=2" rel="stylesheet" type="text/css"/>
         <link href="css/jquery-ui.min.css?version=1" rel="stylesheet" type="text/css"/>
         <link href="css/jquery-ui.structure.min.css?version=1" rel="stylesheet" type="text/css"/>
         <link href="css/jquery-ui.theme.min.css?version=1" rel="stylesheet" type="text/css"/>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" rel="stylesheet" type="text/css"/>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" rel="stylesheet" type="text/css"/>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" rel="stylesheet"
+              type="text/css"/>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" rel="stylesheet"
+              type="text/css"/>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js" type="text/javascript"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js" type="text/javascript"></script>
         <script src="js/jquery-ui.min.js?version=1" type="text/javascript"></script>
@@ -26,10 +28,10 @@
             var REST_LICENCE_DETAIL_UPDATE = 'internal/licence/detail/update';
             var REST_LICENCE_DETAIL_DELETE = 'internal/licence/detail/delete';
             var REST_LICENCE_DETAIL_REQUESTS = 'internal/licence/detail/requests/';
-            var REST_AUTH_CHECK = 'external/auth-check';
+            var REST_AUTH_CHECK = 'internal/auth-check';
 
-            var UPDATE_PROBLEM = 'Problem beim Update!';
-            var SAVE_PROBLEM = 'Problem beim Speichern!';
+            var UPDATE_PROBLEM = 'Problem beim Update: ';
+            var SAVE_PROBLEM = 'Problem beim Speichern: ';
             var DELETE_PROBLEM = 'Problem beim Löschen!';
             var NO_DATA_FOUND = '-';
             var DELETE_DATA_CONFIRM = 'Wirklich löschen?';
@@ -120,8 +122,8 @@
                                         resetCookieAndReloadPage();
                                     }
                                 },
-                                error: function () {
-                                    alert(SAVE_PROBLEM);
+                                error: function (jqXHR, errorThrown, textStatus) {
+                                    alert(SAVE_PROBLEM + jqXHR.responseJSON.info);
                                 }
                             });
                         },
@@ -137,8 +139,8 @@
                                         resetCookieAndReloadPage();
                                     }
                                 },
-                                error: function () {
-                                    alert(UPDATE_PROBLEM);
+                                error: function (jqXHR, errorThrown, textStatus) {
+                                    alert(UPDATE_PROBLEM + jqXHR.responseJSON.info);
                                 }
                             });
                         },
@@ -164,10 +166,31 @@
                         {name: "id", title: "ID", type: "number", width: "auto", visible: false},
                         {name: "licenceNumber", title: "Lizenz", type: "text", width: "auto"},
                         {name: "tseType", title: "TSE", type: "text", width: "auto"},
-                        {name: "numberOfTse", title: "Anzahl", type: "number", width: "auto", search: false, filtering: false},
-                        {name: "tseAvailable", title: "Verfügbar", type: "number", width: "auto", editing: false, search: false, filtering: false, inserting: false},
                         {
-                            name: "active", title: "Aktiv", type: "checkbox", width: "auto", search: false, filtering: false,
+                            name: "numberOfTse",
+                            title: "Anzahl",
+                            type: "number",
+                            width: "auto",
+                            search: false,
+                            filtering: false
+                        },
+                        {
+                            name: "tseAvailable",
+                            title: "Verfügbar",
+                            type: "number",
+                            width: "auto",
+                            editing: false,
+                            search: false,
+                            filtering: false,
+                            inserting: false
+                        },
+                        {
+                            name: "active",
+                            title: "Aktiv",
+                            type: "checkbox",
+                            width: "auto",
+                            search: false,
+                            filtering: false,
                             insertTemplate: function () {
                                 var $result = jsGrid.fields.checkbox.prototype.insertTemplate.call(this);
                                 $result.prop("checked", true);
@@ -237,8 +260,8 @@
                                                         resetCookieAndReloadPage();
                                                     }
                                                 },
-                                                error: function () {
-                                                    alert(SAVE_PROBLEM);
+                                                error: function (jqXHR, errorThrown, textStatus) {
+                                                    alert(SAVE_PROBLEM + jqXHR.responseJSON.info);
                                                 }
                                             });
                                         },
@@ -255,8 +278,8 @@
                                                         resetCookieAndReloadPage();
                                                     }
                                                 },
-                                                error: function () {
-                                                    alert(UPDATE_PROBLEM);
+                                                error: function (jqXHR, errorThrown, textStatus) {
+                                                    alert(UPDATE_PROBLEM + jqXHR.responseJSON.info);
                                                 }
                                             });
                                         },
@@ -281,17 +304,20 @@
                                     },
                                     fields: [
                                         {name: "id", title: "ID", type: "number", width: "auto", visible: false},
-                                        {name: "licenceId", title: "LicenceID", type: "number", width: "auto", visible: false},
-                                        {name: "branchNumber", title: "Filiale", type: "number", width: "auto"},
-                                        {name: "tillExternalId", title: "Kasse", type: "number", width: "auto"},
-                                        {name: "dateRegistered", title: "Registriert", type: "myDateField", width: "auto"},
                                         {
-                                            name: "active", title: "Aktiv", type: "checkbox", width: "auto", search: false, filtering: false,
-                                            insertTemplate: function () {
-                                                var $result = jsGrid.fields.checkbox.prototype.insertTemplate.call(this);
-                                                $result.prop("checked", true);
-                                                return $result;
-                                            }
+                                            name: "licenceId",
+                                            title: "LicenceID",
+                                            type: "number",
+                                            width: "auto",
+                                            visible: false
+                                        },
+                                        {name: "branchNumber", title: "Filiale", type: "text", width: "auto"},
+                                        {name: "tillExternalId", title: "Kasse", type: "text", width: "auto"},
+                                        {
+                                            name: "dateRegistered",
+                                            title: "Registriert",
+                                            type: "myDateField",
+                                            width: "auto"
                                         },
                                         {type: "control"}
                                     ],
@@ -316,7 +342,10 @@
                                                     height: 'auto',
                                                     closeOnEscape: true,
                                                     open: function (event, ui) {
-                                                        $(this).parent().css({'top': Y_PAGE_OFFSET + OFFSET * 2, 'left': OFFSET * 2});
+                                                        $(this).parent().css({
+                                                            'top': Y_PAGE_OFFSET + OFFSET * 2,
+                                                            'left': OFFSET * 2
+                                                        });
                                                         $("#dialogJsGridLog").jsGrid({
                                                             height: "100%",
                                                             width: "100%",
@@ -324,8 +353,18 @@
                                                             noDataContent: NO_DATA_FOUND,
                                                             data: result,
                                                             fields: [
-                                                                {name: "requestType", type: "text", title: "Typ", width: "auto"},
-                                                                {name: "requestDate", title: "Datum", type: "myDateField", width: "auto"}
+                                                                {
+                                                                    name: "requestType",
+                                                                    type: "text",
+                                                                    title: "Typ",
+                                                                    width: "auto"
+                                                                },
+                                                                {
+                                                                    name: "requestDate",
+                                                                    title: "Datum",
+                                                                    type: "myDateField",
+                                                                    width: "auto"
+                                                                }
                                                             ]
                                                         });
                                                     },
@@ -402,7 +441,7 @@
 <body>
 <div class="app-header">
     <img class="app-logo" height="69" src="img/logo_roqqio.png" width="275">
-    <b>TSE-Lizenzen</b>
+    <b>TSE-Lizenzen 1.1</b>
 </div>
 <div class="app-div">
     <button class="app-control app-button" id="refresh_button">Aktualisieren</button>

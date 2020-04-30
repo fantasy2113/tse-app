@@ -52,8 +52,8 @@ public class DbUtilsTest {
         for (int i = 1; i <= 3; i++) {
             LicenceDetail licenceDetail = new LicenceDetail();
 
-            licenceDetail.setTillExternalId(i);
-            licenceDetail.setBranchNumber(i);
+            licenceDetail.setTillExternalId(String.valueOf(i));
+            licenceDetail.setBranchNumber(String.valueOf(i));
             licenceDetail.setLicenceId(1);
 
             licencesDetail.add(licenceDetail);

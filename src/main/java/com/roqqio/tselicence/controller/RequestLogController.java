@@ -5,6 +5,7 @@ import com.roqqio.tselicence.core.entities.RequestLog;
 import com.roqqio.tselicence.core.interfaces.repositories.IRequestLogRepository;
 import com.roqqio.tselicence.security.WithAuthentication;
 import com.roqqio.tselicence.security.WithIpRestriction;
+import io.swagger.annotations.ApiImplicitParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ public class RequestLogController extends Controller {
     @WithIpRestriction
     @WithAuthentication
     @GetMapping("internal/licence/detail/requests/{licence_detail_id}")
+    @ApiImplicitParam(paramType = "header", name = "htoken")
     public ResponseEntity<List<RequestLog>> requests(@PathVariable("licence_detail_id") long licenceDetailId) {
         return statusOk(requestLogRepository.allByLicenceDetailId(licenceDetailId));
     }

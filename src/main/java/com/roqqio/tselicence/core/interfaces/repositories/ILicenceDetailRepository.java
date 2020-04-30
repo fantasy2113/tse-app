@@ -8,5 +8,5 @@ public interface ILicenceDetailRepository extends IRepository<LicenceDetail>, IA
 
     long countByLicenceId(long licenceId);
 
-    Optional<LicenceDetail> find(long licenceId, int branchNumber, int tillExternalId);
+    Optional<LicenceDetail> find(long licenceId, String branchNumber, String tillExternalId);
 }

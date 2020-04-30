@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.roqqio.tselicence</groupId>
-    <artifactId>tselizenzpruefung</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>tse-webapp</artifactId>
+    <version>1.1</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -22,10 +22,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -75,7 +71,9 @@
     </dependencies>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>1.8</java.version>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
     </properties>
 
     <build>
@@ -83,6 +81,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <executable>true</executable>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -2,6 +2,7 @@ package com.roqqio.tselicence.repositories;
 
 import com.roqqio.tselicence.core.Comp;
 import com.roqqio.tselicence.core.entities.LicenceDetail;
+import com.roqqio.tselicence.core.interfaces.entities.Guards;
 import com.roqqio.tselicence.core.interfaces.repositories.ILicenceDetailRepository;
 import com.roqqio.tselicence.core.interfaces.repositories.Repository;
 import org.apache.commons.collections4.IterableUtils;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component(Comp.LIC_DE_REP)
-public class LicenceDetailRepository extends Repository<LicenceDetail> implements ILicenceDetailRepository {
+public class LicenceDetailRepository extends Repository<LicenceDetail> implements ILicenceDetailRepository, Guards {
     private static final Logger LOGGER = LoggerFactory.getLogger(LicenceDetailRepository.class.getName());
     private final HiLicenceDetailRepository hiLicenceDetailRepository;
 
@@ -65,11 +66,10 @@ public class LicenceDetailRepository extends Repository<LicenceDetail> implement
     @Override
     public List<LicenceDetail> save(List<LicenceDetail> items) {
         LocalDateTime now = LocalDateTime.now();
-        items.forEach(licenceDetail -> {
-            licenceDetail.setDateRegistered(now);
-            licenceDetail.setModified(now);
+        items.forEach(l -> {
+            l.setDateRegistered(now);
+            l.setModified(now);
         });
-
         return IterableUtils.toList(hiLicenceDetailRepository.saveAll(items));
     }
 
@@ -94,12 +94,13 @@ public class LicenceDetailRepository extends Repository<LicenceDetail> implement
     }
 
     @Override
-    public Optional<LicenceDetail> find(long licenceId, int branchNumber, int tillExternalId) {
+    public Optional<LicenceDetail> find(long licenceId, String branchNumber, String tillExternalId) {
         return hiLicenceDetailRepository.findByLicenceIdAndBranchNumberAndTillExternalId(licenceId, branchNumber, tillExternalId);
     }
 
     private Optional<LicenceDetail> updateOrSave(LicenceDetail item) {
         try {
+            crossInjectGuard(item);
             parameterGuard(item);
             return Optional.of(hiLicenceDetailRepository.save(item));
         } catch (Exception e) {
@@ -115,17 +116,26 @@ public class LicenceDetailRepository extends Repository<LicenceDetail> implement
             predicates.add(criteriaBuilder.equal(root.get("licenceId"), item.getLicenceId()));
         }
         if (isAdd(item.getBranchNumber())) {
-            predicates.add(criteriaBuilder.equal(root.get("branchNumber"), item.getBranchNumber()));
+            predicates.add(criteriaBuilder.like(root.get("branchNumber"), contains(item.getBranchNumber())));
         }
         if (isAdd(item.getTillExternalId())) {
-            predicates.add(criteriaBuilder.equal(root.get("tillExternalId"), item.getTillExternalId()));
+            predicates.add(criteriaBuilder.like(root.get("tillExternalId"), contains(item.getTillExternalId())));
         }
         return predicates;
     }
 
     private void parameterGuard(LicenceDetail item) throws SQLException {
-        if (item.getBranchNumber() < 1 || item.getTillExternalId() < 1 || item.getLicenceId() < 1) {
+        if (item.getBranchNumber() == null || item.getBranchNumber().trim().isEmpty()
+                || item.getTillExternalId() == null || item.getTillExternalId().trim().isEmpty()
+                || item.getLicenceId() < 1) {
             throw new SQLException("Entity: " + item.toString() + " has bad parameters");
+        }
+    }
+
+    private void alreadyExistGuard(LicenceDetail item) throws SQLException {
+        if (hiLicenceDetailRepository
+                .findByLicenceIdAndBranchNumberAndTillExternalId(item.getLicenceId(), item.getBranchNumber(), item.getTillExternalId()).isPresent()) {
+            throw new SQLException("Entity: " + item.toString() + " already exists");
         }
     }
 

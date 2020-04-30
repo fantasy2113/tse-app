@@ -1,16 +1,15 @@
 package com.roqqio.tselicence.controller;
 
+import com.roqqio.tselicence.core.Comp;
+import com.roqqio.tselicence.core.interfaces.repositories.IUserRepository;
+import com.roqqio.tselicence.security.WithAuthentication;
+import com.roqqio.tselicence.security.WithIpRestriction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.roqqio.tselicence.core.Comp;
-import com.roqqio.tselicence.core.interfaces.repositories.IUserRepository;
-import com.roqqio.tselicence.security.WithAuthentication;
-import com.roqqio.tselicence.security.WithIpRestriction;
 
 @RestController
 public class UserController extends Controller {
@@ -28,6 +27,6 @@ public class UserController extends Controller {
         if (userRepository.createUser(userName, plainPassword, userRole)) {
             return statusOk();
         }
-        return status404NoEntityFound();
+        return status404NotFound();
     }
 }

@@ -37,8 +37,22 @@ public class ExtLicenceController extends Controller {
         this.licenceDetailRepository = licenceDetailRepository;
     }
 
+    @GetMapping("/external/licence/free")
+    public ResponseEntity<Long> free(@RequestParam String licenceNumber, @RequestParam String tseType) {
+        LOGGER.info("get - free");
+
+        Optional<Licence> licence = findLicence(licenceNumber, tseType);
+
+        if (licence.isPresent()) {
+            return statusOk(licence.get().getNumberOfTse() - licenceDetailRepository.countByLicenceId(licence.get().getId()));
+        }
+
+        return status404NotFound((long) -1);
+    }
+
     @GetMapping("/external/licence/find")
-    public ResponseEntity<LicenceResponse> find(@RequestParam String licenceNumber, @RequestParam String tseType, @RequestParam int branchNumber, @RequestParam int tillExternalId) {
+    public ResponseEntity<LicenceResponse> find(@RequestParam String licenceNumber, @RequestParam String tseType,
+                                                @RequestParam String branchNumber, @RequestParam String tillExternalId) {
         LOGGER.info("get");
 
         Optional<Licence> licence = findLicence(licenceNumber, tseType);
@@ -48,33 +62,43 @@ public class ExtLicenceController extends Controller {
             if (found.isPresent()) {
                 createLog(found.get(), "Angefragt");
                 return statusOk(new LicenceResponse(licence.get(), found.get()));
+            } else {
+                return status204NoContent(new LicenceResponse());
             }
         }
 
-        return status404NoEntityFound(new LicenceResponse());
+        return status404NotFound(new LicenceResponse());
     }
 
     @PostMapping("/external/licence/save/licence_detail")
-    public ResponseEntity<LicenceResponse> save(@RequestParam String licenceNumber, @RequestParam String tseType, @RequestParam int branchNumber, @RequestParam int tillExternalId) {
+    public ResponseEntity<LicenceResponse> save(@RequestParam String licenceNumber, @RequestParam String tseType,
+                                                @RequestParam String branchNumber, @RequestParam String tillExternalId) {
         LOGGER.info("add");
 
         Optional<Licence> licence = findLicence(licenceNumber, tseType);
-
-        if (licence.isPresent() && licence.get().isActive()) {
-            LicenceDetail licenceDetail = new LicenceDetail();
-            licenceDetail.setBranchNumber(branchNumber);
-            licenceDetail.setTillExternalId(tillExternalId);
-            Optional<LicenceDetail> saved = licenceDetailRepository.save(getLicenceDetail(licence.get().getId(), branchNumber, tillExternalId));
-            if (saved.isPresent()) {
-                createLog(saved.get(), "Hinzugefügt");
-                return statusOk(new LicenceResponse(licence.get(), saved.get()));
-            }
+        if (!licence.isPresent()) {
+            return status404NotFound(new LicenceResponse("unavailable"));
+        }
+        if (!licence.get().isActive()) {
+            return status404NotFound(new LicenceResponse("deactivated"));
+        }
+        if (licence.get().getNumberOfTse() < licenceDetailRepository.countByLicenceId(licence.get().getId())) {
+            return status404NotFound(new LicenceResponse("all already taken"));
         }
 
-        return status404NoEntityFound(new LicenceResponse());
+        LicenceDetail licenceDetail = new LicenceDetail();
+        licenceDetail.setBranchNumber(branchNumber);
+        licenceDetail.setTillExternalId(tillExternalId);
+        Optional<LicenceDetail> saved = licenceDetailRepository
+                .save(getLicenceDetail(licence.get().getId(), branchNumber, tillExternalId));
+        if (saved.isPresent()) {
+            createLog(saved.get(), "Hinzugefügt");
+            return statusOk(new LicenceResponse(licence.get(), saved.get()));
+        }
+        return status404NotFound(new LicenceResponse("already registered"));
     }
 
-    private LicenceDetail getLicenceDetail(long licenceId, int branchNumber, int tillExternalId) {
+    private LicenceDetail getLicenceDetail(long licenceId, String branchNumber, String tillExternalId) {
         LicenceDetail licenceDetail = new LicenceDetail();
         licenceDetail.setBranchNumber(branchNumber);
         licenceDetail.setTillExternalId(tillExternalId);
@@ -86,7 +110,7 @@ public class ExtLicenceController extends Controller {
         Licence params = new Licence();
         params.setLicenceNumber(licenceNumber);
         params.setTseType(tseType);
-        return licenceRepository.findWithEncoding(params);
+        return licenceRepository.findWithDecryption(params);
     }
 
     private void createLog(LicenceDetail licenceDetail, String type) {

@@ -1,7 +1,9 @@
 package com.roqqio.tselicence.core.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.roqqio.tselicence.core.interfaces.entities.IEntityData;
 import com.roqqio.tselicence.core.interfaces.entities.IModified;
+import com.roqqio.tselicence.core.util.Toolbox;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,7 +13,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "licences_detail")
-public class LicenceDetail implements IModified, Serializable {
+public class LicenceDetail implements IModified, Serializable, IEntityData {
     private static final long serialVersionUID = 1L;
     @Id
     @Column(name = "id")
@@ -20,9 +22,9 @@ public class LicenceDetail implements IModified, Serializable {
     @Column(name = "licence_id")
     private long licenceId;
     @Column(name = "branch_number")
-    private int branchNumber;
+    private String branchNumber;
     @Column(name = "till_external_id")
-    private int tillExternalId;
+    private String tillExternalId;
     @Column(name = "date_registered")
     private LocalDateTime dateRegistered;
     @Column(name = "is_active")
@@ -30,12 +32,28 @@ public class LicenceDetail implements IModified, Serializable {
     @Column(name = "modified")
     @JsonIgnore
     private LocalDateTime modified;
+    @Transient
+    private String info;
 
     public LicenceDetail() {
         this.id = -1;
         this.active = true;
         this.dateRegistered = LocalDateTime.now();
         this.modified = LocalDateTime.now();
+        this.info = "";
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param info
+     */
+    public LicenceDetail(String info) {
+        this.id = -1;
+        this.active = true;
+        this.dateRegistered = LocalDateTime.now();
+        this.modified = LocalDateTime.now();
+        this.info = info;
     }
 
     public long getId() {
@@ -46,20 +64,20 @@ public class LicenceDetail implements IModified, Serializable {
         this.id = id;
     }
 
-    public int getBranchNumber() {
+    public String getBranchNumber() {
         return branchNumber;
     }
 
-    public void setBranchNumber(int branchNumber) {
-        this.branchNumber = branchNumber;
+    public void setBranchNumber(String branchNumber) {
+        this.branchNumber = Toolbox.trim(branchNumber);
     }
 
-    public int getTillExternalId() {
+    public String getTillExternalId() {
         return tillExternalId;
     }
 
-    public void setTillExternalId(int tillExternalId) {
-        this.tillExternalId = tillExternalId;
+    public void setTillExternalId(String tillExternalId) {
+        this.tillExternalId = Toolbox.trim(tillExternalId);
     }
 
     public LocalDateTime getDateRegistered() {
@@ -86,6 +104,24 @@ public class LicenceDetail implements IModified, Serializable {
         this.licenceId = licenceId;
     }
 
+    /**
+     * Returns the info.
+     *
+     * @return the info
+     */
+    public String getInfo() {
+        return info;
+    }
+
+    /**
+     * Sets the info field with given info.
+     *
+     * @param info the info to set
+     */
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
     @Override
     public LocalDateTime getModified() {
         return modified;
@@ -98,12 +134,13 @@ public class LicenceDetail implements IModified, Serializable {
 
     @Override
     public String toString() {
-        return "LicenceDetail{" +
-                "id=" + id +
-                ", licenceId=" + licenceId +
-                ", branchNumber=" + branchNumber +
-                ", tillExternalId=" + tillExternalId +
-                ", active=" + active +
-                '}';
+        return "LicenceDetail{" + "id=" + id + ", licenceId=" + licenceId + ", branchNumber=" + branchNumber + ", tillExternalId="
+                + tillExternalId + ", active=" + active + '}';
+    }
+
+    @Override
+    @JsonIgnore
+    public String getDataAsStr() {
+        return tillExternalId + branchNumber;
     }
 }

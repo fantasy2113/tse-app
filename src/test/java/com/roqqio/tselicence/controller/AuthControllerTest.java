@@ -24,10 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class AuthControllerTest {
     @Autowired
-    private Authenticator authenticator;
-    @Autowired
-    private MockMvc mvc;
-    @Autowired
     ObjectMapper objectMapper;
     @Autowired
     IUserRepository userRepository;
@@ -35,6 +31,10 @@ class AuthControllerTest {
     DbSetup dbSetup;
     @Autowired
     Environment env;
+    @Autowired
+    private Authenticator authenticator;
+    @Autowired
+    private MockMvc mvc;
 
     @BeforeEach
     void setUp() {
@@ -45,7 +45,7 @@ class AuthControllerTest {
 
     @Test
     void getTokenShouldReturnValidKey() throws Exception {
-        MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/external/auth")
+        MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/internal/auth")
                 .header("username", "admin").header("password", "admin"))
                 .andExpect(status().isOk()).andReturn();
 
@@ -56,7 +56,7 @@ class AuthControllerTest {
 
     @Test
     void getTokenShouldReturnNonValidKey() throws Exception {
-        MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/external/auth")
+        MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/internal/auth")
                 .header("username", "").header("password", ""))
                 .andExpect(status().is(401)).andReturn();
 

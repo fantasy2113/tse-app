@@ -6,12 +6,12 @@ import com.roqqio.tselicence.core.entities.LicenceDetail;
 import java.time.LocalDateTime;
 
 public class LicenceResponse {
+    private String info;
     private String licenceNumber;
     private String tseType;
-    private int branchNumber;
-    private int tillExternalId;
+    private String branchNumber;
+    private String tillExternalId;
     private LocalDateTime dateRegistered;
-    private boolean active;
 
     public LicenceResponse(Licence licence, LicenceDetail licenceDetail) {
         this.licenceNumber = licence.getLicenceNumber();
@@ -19,7 +19,10 @@ public class LicenceResponse {
         this.branchNumber = licenceDetail.getBranchNumber();
         this.tillExternalId = licenceDetail.getTillExternalId();
         this.dateRegistered = licenceDetail.getDateRegistered();
-        this.active = licenceDetail.isActive();
+    }
+
+    public LicenceResponse(String info) {
+        this.info = info;
     }
 
     public LicenceResponse() {
@@ -41,19 +44,19 @@ public class LicenceResponse {
         this.tseType = tseType;
     }
 
-    public int getBranchNumber() {
+    public String getBranchNumber() {
         return branchNumber;
     }
 
-    public void setBranchNumber(int branchNumber) {
+    public void setBranchNumber(String branchNumber) {
         this.branchNumber = branchNumber;
     }
 
-    public int getTillExternalId() {
+    public String getTillExternalId() {
         return tillExternalId;
     }
 
-    public void setTillExternalId(int tillExternalId) {
+    public void setTillExternalId(String tillExternalId) {
         this.tillExternalId = tillExternalId;
     }
 
@@ -65,12 +68,12 @@ public class LicenceResponse {
         this.dateRegistered = dateRegistered;
     }
 
-    public boolean isActive() {
-        return active;
+    public String getInfo() {
+        return info;
     }
 
-    public void setActive(boolean active) {
-        this.active = active;
+    public void setInfo(String info) {
+        this.info = info;
     }
 
     @Override
@@ -80,7 +83,6 @@ public class LicenceResponse {
                 ", tseType='" + tseType + '\'' +
                 ", branchNumber=" + branchNumber +
                 ", tillExternalId=" + tillExternalId +
-                ", active=" + active +
                 '}';
     }
 }

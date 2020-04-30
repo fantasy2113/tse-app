@@ -2,6 +2,7 @@ package com.roqqio.tselicence.security;
 
 import com.roqqio.tselicence.core.Comp;
 import com.roqqio.tselicence.core.interfaces.security.IEncryption;
+import com.roqqio.tselicence.core.util.Toolbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +31,8 @@ public class UrlSaveAes implements IEncryption {
 
     @Autowired
     public UrlSaveAes(Environment env) {
-        this.salt = env.getProperty("custom.aesSalt");
-        this.secretKey = env.getProperty("custom.aesSecretKey");
+        this.salt = Toolbox.trim(env.getProperty("custom.aesSalt"));
+        this.secretKey = Toolbox.trim(env.getProperty("custom.aesSecretKey"));
         byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         this.ivSpec = new IvParameterSpec(iv);
     }

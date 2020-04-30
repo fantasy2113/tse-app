@@ -30,8 +30,7 @@ public class IpInterceptor extends Interceptor implements HandlerInterceptor {
             HandlerMethod method = (HandlerMethod) handler;
             if (method.getMethodAnnotation(WithIpRestriction.class) != null) {
                 if (noMatch(request)) {
-                    setUnauthorized(response);
-                    LOGGER.info("unauthorized");
+                    LOGGER.info(unauthorized(response, request));
                     return false;
                 }
             }

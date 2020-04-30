@@ -1,8 +1,8 @@
-CREATE TABLE public.request_logs
+CREATE TABLE IF NOT EXISTS request_logs
 (
     id bigserial NOT NULL UNIQUE,
     licence_detail_id bigint NOT NULL,
-    request_type character varying(60) COLLATE pg_catalog."default" NOT NULL,
+    request_type character varying(60) NOT NULL,
     request_date timestamp without time zone NOT NULL,
-    CONSTRAINT request_logs_pkey PRIMARY KEY (id,licence_detail_id)
+    PRIMARY KEY (licence_detail_id)
 );

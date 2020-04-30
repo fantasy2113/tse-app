@@ -2,9 +2,11 @@ package com.roqqio.tselicence.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.roqqio.tselicence.core.DbSetup;
+import com.roqqio.tselicence.core.entities.Licence;
 import com.roqqio.tselicence.core.entities.LicenceDetail;
 import com.roqqio.tselicence.core.entities.User;
 import com.roqqio.tselicence.core.interfaces.repositories.ILicenceDetailRepository;
+import com.roqqio.tselicence.core.interfaces.repositories.ILicenceRepository;
 import com.roqqio.tselicence.core.interfaces.repositories.IUserRepository;
 import com.roqqio.tselicence.security.Authenticator;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,7 @@ import testutil.DbUtilsTest;
 
 import javax.servlet.http.Cookie;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,6 +42,8 @@ class LicenceDetailControllerTest {
     IUserRepository userRepository;
     @Autowired
     ILicenceDetailRepository licenceDetailRepository;
+    @Autowired
+    ILicenceRepository licenceRepository;
     @Autowired
     DbSetup dbSetup;
     @Autowired
@@ -59,8 +64,8 @@ class LicenceDetailControllerTest {
         licenceDefault = new LicenceDetail();
 
         licenceDefault.setLicenceId(1);
-        licenceDefault.setBranchNumber(1);
-        licenceDefault.setTillExternalId(1);
+        licenceDefault.setBranchNumber("1");
+        licenceDefault.setTillExternalId("1");
     }
 
     @Test
@@ -70,22 +75,26 @@ class LicenceDetailControllerTest {
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/internal/licences/detail/{licence_id}", "1")
                 .cookie(cookie)).andExpect(status().isOk()).andReturn();
 
-        assertEquals(objectMapper.writeValueAsString(expected), mvcResult.getResponse().getContentAsString());
+        List<Licence> result = Arrays.asList(objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Licence[].class));
+
+        assertEquals(expected.size(), result.size());
     }
 
     @Test
     void filter() throws Exception {
-        List<LicenceDetail> itmes = DbUtilsTest.saveDemoLicencesDetailToDbAndReturnAsList(licenceDetailRepository);
+        List<LicenceDetail> items = DbUtilsTest.saveDemoLicencesDetailToDbAndReturnAsList(licenceDetailRepository);
 
         List<LicenceDetail> expected = new ArrayList<>();
-        expected.add(itmes.get(0));
+        expected.add(items.get(0));
 
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.put("/internal/licence/detail/filter")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(itmes.get(0)))
+                .content(objectMapper.writeValueAsString(items.get(0)))
                 .cookie(cookie)).andExpect(status().isOk()).andReturn();
 
-        assertEquals(objectMapper.writeValueAsString(expected), mvcResult.getResponse().getContentAsString());
+        List<Licence> result = Arrays.asList(objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Licence[].class));
+
+        assertEquals(expected.size(), result.size());
     }
 
     @Test
@@ -126,8 +135,8 @@ class LicenceDetailControllerTest {
 
         LicenceDetail licenceDetail = licenceDetailRepository.get(id).get();
 
-        assertEquals(1, licenceDetail.getBranchNumber());
-        licenceDefault.setBranchNumber(3);
+        assertEquals("1", licenceDetail.getBranchNumber());
+        licenceDefault.setBranchNumber("3");
 
         mvc.perform(MockMvcRequestBuilders.put("/internal/licence/detail/update")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -135,12 +144,20 @@ class LicenceDetailControllerTest {
                 .cookie(cookie)).andExpect(status().isOk());
 
         assertTrue(licenceDetailRepository.exists(1));
-        assertEquals(3, licenceDefault.getBranchNumber());
+        assertEquals("3", licenceDefault.getBranchNumber());
     }
 
     @Test
     void save() throws Exception {
         int id = 1;
+
+        Licence licence = new Licence();
+        licence.setId(id);
+        licence.setNumberOfTse(3);
+        licence.setLicenceNumber("abc");
+        licence.setTseType("gg");
+
+        licenceRepository.save(licence);
 
         assertFalse(licenceDetailRepository.exists(id));
 

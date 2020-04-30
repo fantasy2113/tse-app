@@ -28,7 +28,7 @@ public final class AuthController extends Controller {
     }
 
     @WithIpRestriction
-    @GetMapping("/external/auth")
+    @GetMapping("/internal/auth")
     public ResponseEntity<Token> auth(@RequestHeader("username") String username, @RequestHeader("password") String password) {
         LOGGER.info(username);
         Optional<String> token = authenticator.getToken(username, password);
@@ -37,7 +37,7 @@ public final class AuthController extends Controller {
 
     @WithIpRestriction
     @WithAuthentication
-    @PostMapping("/external/auth-check")
+    @PostMapping("/internal/auth-check")
     public ResponseEntity<Void> authCheck() {
         return statusOk();
     }

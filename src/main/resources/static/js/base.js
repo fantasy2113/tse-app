@@ -1,6 +1,3 @@
-var DEV_ADDRESS = 'http://localhost:8080/';
-var ADDRESS = 'https://tse-lizenzpruefung.herokuapp.com/';
-var CONTEXT_PATH = '3h8ZKS3wn1Xu0dDSzeOGweVe_N4n7PbuOJ0GKzrK3hEj1IS2HkcBC5AKSBLq_uK3tFQaRR8bT5rMfmQAvY192A/';
 var REST_APP = 'app';
 
 function getCookie(cname) {
@@ -28,8 +25,5 @@ String.prototype.includes = function (str) {
 
 function getPath() {
     var url = window.location.href;
-    if (url.includes("localhost")) {
-        return DEV_ADDRESS + CONTEXT_PATH;
-    }
-    return ADDRESS + CONTEXT_PATH;
+    return url.replace(REST_APP, '');
 }

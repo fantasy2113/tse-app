@@ -17,8 +17,16 @@ class UrlAesTest {
     UrlSaveAes aes;
 
     @Test
-    void encrypt() {
+    void encrypt1() {
         String originalString = "howtodoinjava.com";
+        Optional<String> encrypt = aes.encrypt(originalString);
+        System.out.println(encrypt.get());
+        assertTrue(!encrypt.equals(originalString));
+    }
+
+    @Test
+    void encrypt999999() {
+        String originalString = "999999";
         Optional<String> encrypt = aes.encrypt(originalString);
         System.out.println(encrypt.get());
         assertTrue(!encrypt.equals(originalString));
@@ -27,6 +35,18 @@ class UrlAesTest {
     @Test
     void decrypt() {
         String originalString = "howtodoinjava.com";
+        Optional<String> encrypt = aes.encrypt(originalString);
+        System.out.println(encrypt.get());
+        assertTrue(!encrypt.equals(originalString));
+
+        Optional<String> decrypt = aes.decrypt(encrypt.get());
+
+        assertEquals(originalString, decrypt.get());
+    }
+
+    @Test
+    void decrypt99999() {
+        String originalString = "999999";
         Optional<String> encrypt = aes.encrypt(originalString);
         System.out.println(encrypt.get());
         assertTrue(!encrypt.equals(originalString));

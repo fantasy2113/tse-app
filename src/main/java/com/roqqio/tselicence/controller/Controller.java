@@ -14,11 +14,11 @@ abstract class Controller implements TaskRunner {
         return ResponseEntity.status(401).body(items);
     }
 
-    <T> ResponseEntity<T> status404NoEntityFound(T item) {
+    <T> ResponseEntity<T> status404NotFound(T item) {
         return ResponseEntity.status(404).body(item);
     }
 
-    ResponseEntity<Void> status404NoEntityFound() {
+    ResponseEntity<Void> status404NotFound() {
         return ResponseEntity.status(404).build();
     }
 
@@ -28,6 +28,10 @@ abstract class Controller implements TaskRunner {
 
     <T> ResponseEntity<List<T>> statusOk(List<T> items) {
         return ResponseEntity.ok().body(items);
+    }
+
+    <T> ResponseEntity<T> status204NoContent(T item) {
+        return ResponseEntity.status(204).body(item);
     }
 
     ResponseEntity<Void> statusUnauthorized() {
