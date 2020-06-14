@@ -1,12 +1,12 @@
 package testutil;
 
-import com.roqqio.tselicence.core.DbSetup;
-import com.roqqio.tselicence.core.entities.Licence;
-import com.roqqio.tselicence.core.entities.LicenceDetail;
-import com.roqqio.tselicence.core.entities.User;
-import com.roqqio.tselicence.core.interfaces.repositories.ILicenceDetailRepository;
-import com.roqqio.tselicence.core.interfaces.repositories.ILicenceRepository;
-import com.roqqio.tselicence.core.interfaces.repositories.IUserRepository;
+import de.jos.tselicence.core.DbSetup;
+import de.jos.tselicence.core.entities.Licence;
+import de.jos.tselicence.core.entities.LicenceDetail;
+import de.jos.tselicence.core.entities.User;
+import de.jos.tselicence.core.interfaces.repositories.ILicenceDetailRepository;
+import de.jos.tselicence.core.interfaces.repositories.ILicenceRepository;
+import de.jos.tselicence.core.interfaces.repositories.IUserRepository;
 import org.springframework.core.env.Environment;
 
 import java.util.ArrayList;
